@@ -12,6 +12,7 @@ CREATE TABLE USER (
 
 CREATE TABLE PLAYLIST (
     playlist_id INT AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL,
     number_of_likes INT NOT NULL,
     uploader_id INT,
     PRIMARY KEY (playlist_id),
@@ -67,10 +68,10 @@ SET @user_1_id := LAST_INSERT_ID();
 INSERT INTO USER (username) VALUES ('user_2');
 SET @user_2_id := LAST_INSERT_ID();
 
-INSERT INTO PLAYLIST (number_of_likes, uploader_id) VALUES (10, @user_1_id);
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id) VALUES ('Focus Beats', 10, @user_1_id);
 SET @playlist_1_id := LAST_INSERT_ID();
 
-INSERT INTO PLAYLIST (number_of_likes, uploader_id) VALUES (8, @user_2_id);
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id) VALUES ('Workout Essentials', 8, @user_2_id);
 SET @playlist_2_id := LAST_INSERT_ID();
 
 INSERT INTO ARTIST (name) VALUES ('Reol');
@@ -273,7 +274,7 @@ INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
 (@playlist_2_id, @song_3_id),
 (@playlist_2_id, @song_8_id);
 
-INSERT INTO PLAYLIST (number_of_likes, uploader_id) VALUES (15, @user_1_id);
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id) VALUES ('Indie Chill', 15, @user_1_id);
 SET @playlist_3_id := LAST_INSERT_ID();
 
 INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES

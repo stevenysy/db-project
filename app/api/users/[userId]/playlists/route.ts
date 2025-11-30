@@ -7,6 +7,7 @@ import { getDbPool } from "@/app/lib/db";
 
 type UserPlaylistRow = RowDataPacket & {
   playlist_id: number;
+  playlist_name: string;
   number_of_likes: number;
   uploader_id: number;
   uploader_username: string;
@@ -36,6 +37,7 @@ export async function GET(
       `
         SELECT
           p.playlist_id,
+          p.name AS playlist_name,
           p.number_of_likes,
           p.uploader_id,
           u.username AS uploader_username,
@@ -57,6 +59,7 @@ export async function GET(
       number,
       {
         id: number;
+        name: string;
         likes: number;
         uploaderId: number;
         uploader: string;
@@ -71,6 +74,7 @@ export async function GET(
         (() => {
           const created = {
             id: row.playlist_id,
+            name: row.playlist_name,
             likes: row.number_of_likes,
             uploaderId: row.uploader_id,
             uploader: row.uploader_username,
@@ -91,7 +95,7 @@ export async function GET(
 
     const playlists = Array.from(playlistMap.values()).map((playlist) => ({
       id: playlist.id,
-      name: `Playlist ${playlist.id}`,
+      name: playlist.name,
       likes: playlist.likes,
       uploaderId: playlist.uploaderId,
       uploader: playlist.uploader,

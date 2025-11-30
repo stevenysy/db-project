@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { AddSongModal } from "./components/AddSongModal";
+import { CreatePlaylistModal } from "./components/CreatePlaylistModal";
 import { PlaylistCard } from "./components/PlaylistCard";
 import { PlaylistModal } from "./components/PlaylistModal";
 import type { ApiSong, Playlist } from "./types";
@@ -27,6 +28,7 @@ export default function Home() {
   const [playlistForAddSong, setPlaylistForAddSong] = useState<Playlist | null>(
     null
   );
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchUserPlaylists = async () => {
@@ -141,6 +143,59 @@ export default function Home() {
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isMutating, setIsMutating] = useState(false);
+
+  const handleCreatePlaylist = async (name: string) => {
+    setIsMutating(true);
+    try {
+      const response = await fetch("/api/playlists", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, uploaderId: user.id }),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => null);
+        const message =
+          (errorBody && errorBody.error) || "Failed to create playlist";
+        throw new Error(message);
+      }
+
+      const data: {
+        playlist: {
+          id: number;
+          name: string;
+          number_of_likes: number;
+          uploader_id: number;
+        };
+      } = await response.json();
+
+      const newPlaylist: Playlist = {
+        id: data.playlist.id.toString(),
+        title: data.playlist.name,
+        owner: user.username,
+        likes: data.playlist.number_of_likes,
+        songs: [],
+      };
+
+      setUserPlaylists((prev) => [newPlaylist, ...prev]);
+      setSelectedPlaylist(newPlaylist);
+      setPlaylistForAddSong(null);
+      setIsCreateModalOpen(false);
+      setToastMessage(`Created "${newPlaylist.title}".`);
+    } catch (error) {
+      console.error(error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while creating the playlist";
+      setToastMessage(message);
+      throw new Error(message);
+    } finally {
+      setIsMutating(false);
+    }
+  };
 
   const handleSongAdded = async (playlistId: string, song: ApiSong) => {
     setIsMutating(true);
@@ -344,9 +399,14 @@ export default function Home() {
               <h2 className="text-lg font-semibold text-zinc-950">
                 Your Playlists
               </h2>
-              <span className="text-sm text-zinc-500">
-                {userPlaylists.length} uploaded
-              </span>
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                disabled={isMutating}
+                className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:bg-emerald-300"
+              >
+                + New Playlist
+              </button>
             </div>
             <div className="mt-5 flex flex-col gap-4">
               {isLoadingUserPlaylists && (
@@ -426,6 +486,13 @@ export default function Home() {
           playlist={playlistForAddSong}
           onClose={closeAddSongModal}
           onSongSelect={(song) => handleSongAdded(playlistForAddSong.id, song)}
+        />
+      )}
+
+      {isCreateModalOpen && (
+        <CreatePlaylistModal
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={handleCreatePlaylist}
         />
       )}
 

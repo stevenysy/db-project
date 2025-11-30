@@ -1,16 +1,35 @@
-## Environment setup
+## Local development
 
-Create a `.env.local` file in the project root with your MySQL credentials:
+### Prerequisites
+
+- Install Node.js 20 or newer (we recommend using [`nvm`](https://github.com/nvm-sh/nvm)).
+- Enable pnpm via Corepack (`corepack enable pnpm`) or install it globally (`npm install -g pnpm`).
+- Install Docker Desktop (or Docker Engine + Docker Compose) and keep it running.
+
+### First-time setup
+
+1. Create the `.env.local` file in the project root with the following credentials:
 
 ```
 DB_HOST=localhost
 DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_password
+DB_USER=app_user
+DB_PASSWORD=app_password
 DB_NAME=music_share
 ```
 
-Restart the dev server after adding or updating environment variables.
+2. Install dependencies: `pnpm install`.
+
+### Start the app in dev mode
+
+1. Start the database container: `docker compose up -d mysql`.
+2. Run the Next.js dev server: `pnpm dev`.
+3. Visit <http://localhost:3000> once the server reports it is ready.
+
+### Shut everything down
+
+- Stop the dev server with `Ctrl+C`.
+- Stop the database container when you are done: `docker compose down`.
 
 ## API routes
 
@@ -82,6 +101,21 @@ Example response:
   ]
 }
 ```
+
+### `POST /api/playlists`
+
+Creates a new playlist for the authenticated (or currently selected) user.
+
+Request body:
+
+```json
+{
+  "name": "Focus Beats",
+  "uploaderId": 1
+}
+```
+
+Returns HTTP 201 with the newly created playlist id.
 
 ### `POST /api/playlists/:playlistId/songs`
 
