@@ -36,6 +36,33 @@ Example response:
 
 All API routes run on the server, so they can safely access the database using the credentials specified in `.env.local`.
 
+### `GET /api/users/:userId/playlists`
+
+Returns every playlist uploaded by the specified user id (including the songs in each playlist).
+
+Example response:
+
+```json
+{
+  "playlists": [
+    {
+      "id": 1,
+      "name": "Playlist 1",
+      "likes": 10,
+      "uploaderId": 1,
+      "uploader": "user_1",
+      "songs": [
+        {
+          "id": 1,
+          "title": "No title",
+          "artist": "Reol"
+        }
+      ]
+    }
+  ]
+}
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

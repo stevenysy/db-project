@@ -7,41 +7,69 @@ import { PlaylistModal } from "./components/PlaylistModal";
 import type { Playlist } from "./types";
 
 const user = {
+  id: 1,
   username: "user_1",
 };
-
-const userPlaylists: Playlist[] = [
-  {
-    id: "study-session",
-    title: "Study Session 101",
-    owner: "user_1",
-    likes: 14,
-    songs: [
-      { id: "s1", title: "No title", artist: "Reol" },
-      { id: "s2", title: "drop pop candy", artist: "Reol" },
-      { id: "s3", title: "Memories", artist: "Maroon 5" },
-    ],
-  },
-  {
-    id: "late-night",
-    title: "Late Night Coding",
-    owner: "user_1",
-    likes: 9,
-    songs: [
-      { id: "s4", title: "Payphone", artist: "Maroon 5" },
-      { id: "s5", title: "Rewrite the Stars", artist: "Anne-Marie" },
-      { id: "s6", title: "Lemon", artist: "Kenshi Yonezu" },
-    ],
-  },
-];
 
 export default function Home() {
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(
     null
   );
+  const [userPlaylists, setUserPlaylists] = useState<Playlist[]>([]);
+  const [isLoadingUserPlaylists, setIsLoadingUserPlaylists] = useState(true);
+  const [userPlaylistsError, setUserPlaylistsError] = useState<string | null>(
+    null
+  );
   const [popularPlaylists, setPopularPlaylists] = useState<Playlist[]>([]);
   const [isLoadingPopular, setIsLoadingPopular] = useState(true);
   const [popularError, setPopularError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserPlaylists = async () => {
+      try {
+        const response = await fetch(`/api/users/${user.id}/playlists`);
+        if (!response.ok) {
+          throw new Error("Failed to load your playlists");
+        }
+
+        const data: {
+          playlists: Array<{
+            id: number;
+            name: string;
+            likes: number;
+            uploader: string;
+            songs: Array<{ id: number; title: string; artist: string }>;
+          }>;
+        } = await response.json();
+
+        const playlists = data.playlists.map((playlist) => ({
+          id: playlist.id.toString(),
+          title: playlist.name,
+          owner: playlist.uploader,
+          likes: playlist.likes,
+          songs: playlist.songs.map((song) => ({
+            id: song.id.toString(),
+            title: song.title,
+            artist: song.artist,
+          })),
+        }));
+
+        setUserPlaylists(playlists);
+        setUserPlaylistsError(null);
+      } catch (error) {
+        console.error(error);
+        setUserPlaylistsError(
+          error instanceof Error
+            ? error.message
+            : "Something went wrong while fetching your playlists"
+        );
+      } finally {
+        setIsLoadingUserPlaylists(false);
+      }
+    };
+
+    fetchUserPlaylists();
+  }, []);
 
   useEffect(() => {
     const fetchPopularPlaylists = async () => {
@@ -122,14 +150,28 @@ export default function Home() {
               </span>
             </div>
             <div className="mt-5 flex flex-col gap-4">
-              {userPlaylists.map((playlist) => (
-                <PlaylistCard
-                  key={playlist.id}
-                  playlist={playlist}
-                  variant="user"
-                  onSelect={handleCardClick}
-                />
-              ))}
+              {isLoadingUserPlaylists && (
+                <p className="text-sm text-zinc-500">Loading your playlists…</p>
+              )}
+              {userPlaylistsError && (
+                <p className="text-sm text-red-500">{userPlaylistsError}</p>
+              )}
+              {!isLoadingUserPlaylists &&
+                !userPlaylistsError &&
+                (userPlaylists.length > 0 ? (
+                  userPlaylists.map((playlist) => (
+                    <PlaylistCard
+                      key={playlist.id}
+                      playlist={playlist}
+                      variant="user"
+                      onSelect={handleCardClick}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-zinc-500">
+                    You have not uploaded any playlists yet.
+                  </p>
+                ))}
             </div>
           </section>
 
