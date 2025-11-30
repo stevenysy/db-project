@@ -1,24 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Environment setup
 
-## Getting Started
+Create a `.env.local` file in the project root with your MySQL credentials:
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=music_share
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Restart the dev server after adding or updating environment variables.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### `GET /api/playlists/popular`
+
+Returns the 10 playlists with the highest `number_of_likes` ordered from most to least popular.
+
+Example response:
+
+```json
+{
+  "playlists": [
+    {
+      "id": 5,
+      "name": "Playlist 5",
+      "likes": 32,
+      "uploader": "user_2",
+      "uploaderId": 2
+    }
+  ]
+}
+```
+
+All API routes run on the server, so they can safely access the database using the credentials specified in `.env.local`.
 
 ## Learn More
 

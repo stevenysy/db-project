@@ -1,65 +1,176 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+
+import { PlaylistCard } from "./components/PlaylistCard";
+import { PlaylistModal } from "./components/PlaylistModal";
+import type { Playlist } from "./types";
+
+const user = {
+  username: "user_1",
+};
+
+const userPlaylists: Playlist[] = [
+  {
+    id: "study-session",
+    title: "Study Session 101",
+    owner: "user_1",
+    likes: 14,
+    songs: [
+      { id: "s1", title: "No title", artist: "Reol" },
+      { id: "s2", title: "drop pop candy", artist: "Reol" },
+      { id: "s3", title: "Memories", artist: "Maroon 5" },
+    ],
+  },
+  {
+    id: "late-night",
+    title: "Late Night Coding",
+    owner: "user_1",
+    likes: 9,
+    songs: [
+      { id: "s4", title: "Payphone", artist: "Maroon 5" },
+      { id: "s5", title: "Rewrite the Stars", artist: "Anne-Marie" },
+      { id: "s6", title: "Lemon", artist: "Kenshi Yonezu" },
+    ],
+  },
+];
 
 export default function Home() {
+  const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(
+    null
+  );
+  const [popularPlaylists, setPopularPlaylists] = useState<Playlist[]>([]);
+  const [isLoadingPopular, setIsLoadingPopular] = useState(true);
+  const [popularError, setPopularError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPopularPlaylists = async () => {
+      try {
+        const response = await fetch("/api/playlists/popular");
+        if (!response.ok) {
+          throw new Error("Failed to load popular playlists");
+        }
+
+        const data: {
+          playlists: Array<{
+            id: number;
+            name: string;
+            likes: number;
+            uploader: string;
+            songs: Array<{ id: number; title: string; artist: string }>;
+          }>;
+        } = await response.json();
+
+        const playlists = data.playlists.map((playlist) => ({
+          id: playlist.id.toString(),
+          title: playlist.name,
+          owner: playlist.uploader,
+          likes: playlist.likes,
+          songs: playlist.songs.map((song) => ({
+            id: song.id.toString(),
+            title: song.title,
+            artist: song.artist,
+          })),
+        }));
+
+        setPopularPlaylists(playlists);
+        setPopularError(null);
+      } catch (error) {
+        console.error(error);
+        setPopularError(
+          error instanceof Error
+            ? error.message
+            : "Something went wrong while fetching popular playlists"
+        );
+      } finally {
+        setIsLoadingPopular(false);
+      }
+    };
+
+    fetchPopularPlaylists();
+  }, []);
+
+  const handleCardClick = (playlist: Playlist) => {
+    setSelectedPlaylist(playlist);
+  };
+
+  const closeModal = () => {
+    setSelectedPlaylist(null);
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-zinc-100 text-zinc-900">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-10">
+        <header className="flex items-center gap-4 border-b border-zinc-200 pb-6">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-300 text-xl font-semibold text-zinc-700">
+            {user.username.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <p className="text-sm text-zinc-500">Logged in as</p>
+            <h1 className="text-2xl font-semibold">{user.username}</h1>
+          </div>
+        </header>
+
+        <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-2">
+          <section className="rounded-3xl bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-zinc-950">
+                Your Playlists
+              </h2>
+              <span className="text-sm text-zinc-500">
+                {userPlaylists.length} uploaded
+              </span>
+            </div>
+            <div className="mt-5 flex flex-col gap-4">
+              {userPlaylists.map((playlist) => (
+                <PlaylistCard
+                  key={playlist.id}
+                  playlist={playlist}
+                  variant="user"
+                  onSelect={handleCardClick}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-3xl bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-zinc-950">
+                Trending Playlists
+              </h2>
+              <span className="text-sm text-zinc-500">Top picks today</span>
+            </div>
+            <div className="mt-5 flex flex-col gap-4">
+              {isLoadingPopular && (
+                <p className="text-sm text-zinc-500">Loading playlists…</p>
+              )}
+              {popularError && (
+                <p className="text-sm text-red-500">{popularError}</p>
+              )}
+              {!isLoadingPopular &&
+                !popularError &&
+                (popularPlaylists.length > 0 ? (
+                  popularPlaylists.map((playlist) => (
+                    <PlaylistCard
+                      key={playlist.id}
+                      playlist={playlist}
+                      variant="popular"
+                      onSelect={handleCardClick}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-zinc-500">
+                    No playlists found yet. Check back later!
+                  </p>
+                ))}
+            </div>
+          </section>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </div>
+
+      {selectedPlaylist && (
+        <PlaylistModal playlist={selectedPlaylist} onClose={closeModal} />
+      )}
     </div>
   );
 }
