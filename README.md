@@ -97,6 +97,14 @@ Request body:
 
 Returns HTTP 201 on success.
 
+### `DELETE /api/playlists/:playlistId/songs/:songId`
+
+Removes a song from the specified playlist. Returns HTTP 200 on success.
+
+### `DELETE /api/playlists/:playlistId`
+
+Deletes a playlist along with its associated songs. Returns HTTP 200 on success.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

@@ -140,11 +140,11 @@ export default function Home() {
   };
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [isAddingSong, setIsAddingSong] = useState(false);
+  const [isMutating, setIsMutating] = useState(false);
 
   const handleSongAdded = async (playlistId: string, song: ApiSong) => {
+    setIsMutating(true);
     try {
-      setIsAddingSong(true);
       const response = await fetch(`/api/playlists/${playlistId}/songs`, {
         method: "POST",
         headers: {
@@ -209,17 +209,119 @@ export default function Home() {
           : current
       );
 
+      setPlaylistForAddSong(null);
       setToastMessage(`Added "${song.title}" to the playlist!`);
     } catch (error) {
       console.error(error);
-      setToastMessage(
+      const message =
         error instanceof Error
           ? error.message
-          : "Something went wrong while adding the song"
-      );
+          : "Something went wrong while adding the song";
+      setToastMessage(message);
+      throw new Error(message);
     } finally {
-      setIsAddingSong(false);
-      setPlaylistForAddSong(null);
+      setIsMutating(false);
+    }
+  };
+
+  const handleSongRemoved = async (
+    playlist: Playlist,
+    song: Playlist["songs"][number]
+  ) => {
+    setIsMutating(true);
+    try {
+      const response = await fetch(
+        `/api/playlists/${playlist.id}/songs/${song.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to remove song from playlist");
+      }
+
+      setUserPlaylists((prev) =>
+        prev.map((current) =>
+          current.id === playlist.id
+            ? {
+                ...current,
+                songs: current.songs.filter((item) => item.id !== song.id),
+              }
+            : current
+        )
+      );
+
+      setPopularPlaylists((prev) =>
+        prev.map((current) =>
+          current.id === playlist.id
+            ? {
+                ...current,
+                songs: current.songs.filter((item) => item.id !== song.id),
+              }
+            : current
+        )
+      );
+
+      setSelectedPlaylist((current) =>
+        current && current.id === playlist.id
+          ? {
+              ...current,
+              songs: current.songs.filter((item) => item.id !== song.id),
+            }
+          : current
+      );
+
+      setToastMessage(`Removed "${song.title}" from the playlist.`);
+    } catch (error) {
+      console.error(error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while removing the song";
+      setToastMessage(message);
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
+  const handlePlaylistRemoved = async (playlist: Playlist) => {
+    setIsMutating(true);
+    try {
+      const response = await fetch(`/api/playlists/${playlist.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to remove playlist");
+      }
+
+      setUserPlaylists((prev) =>
+        prev.filter((current) => current.id !== playlist.id)
+      );
+
+      setPopularPlaylists((prev) =>
+        prev.filter((current) => current.id !== playlist.id)
+      );
+
+      setSelectedPlaylist((current) =>
+        current && current.id === playlist.id ? null : current
+      );
+
+      setPlaylistForAddSong((current) =>
+        current && current.id === playlist.id ? null : current
+      );
+
+      setToastMessage(`Deleted "${playlist.title}".`);
+    } catch (error) {
+      console.error(error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while removing the playlist";
+      setToastMessage(message);
+    } finally {
+      setIsMutating(false);
     }
   };
 
@@ -311,8 +413,11 @@ export default function Home() {
         <PlaylistModal
           playlist={selectedPlaylist}
           isOwner={selectedPlaylist.owner === user.username}
+          isMutating={isMutating}
           onClose={closeModal}
           onAddSong={handleAddSongRequest}
+          onRemoveSong={handleSongRemoved}
+          onRemovePlaylist={handlePlaylistRemoved}
         />
       )}
 
