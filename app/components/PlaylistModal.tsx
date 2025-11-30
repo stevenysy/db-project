@@ -4,10 +4,17 @@ import type { Playlist } from "../types";
 
 type PlaylistModalProps = {
   playlist: Playlist;
+  isOwner: boolean;
   onClose: () => void;
+  onAddSong: (playlist: Playlist) => void;
 };
 
-export function PlaylistModal({ playlist, onClose }: PlaylistModalProps) {
+export function PlaylistModal({
+  playlist,
+  isOwner,
+  onClose,
+  onAddSong,
+}: PlaylistModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
@@ -33,13 +40,23 @@ export function PlaylistModal({ playlist, onClose }: PlaylistModalProps) {
               {playlist.likes} likes · Curated by {playlist.owner}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-zinc-200 px-3 py-1 text-sm font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-white"
-          >
-            Close
-          </button>
+          {isOwner ? (
+            <button
+              type="button"
+              onClick={() => onAddSong(playlist)}
+              className="rounded-full bg-sky-500 px-4 py-1.5 text-sm font-medium text-white transition hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-white"
+            >
+              Add Song
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-full border border-zinc-200 px-3 py-1 text-sm font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-white"
+            >
+              Close
+            </button>
+          )}
         </div>
 
         <ul className="mt-6 flex flex-col gap-3">
@@ -61,4 +78,3 @@ export function PlaylistModal({ playlist, onClose }: PlaylistModalProps) {
     </div>
   );
 }
-

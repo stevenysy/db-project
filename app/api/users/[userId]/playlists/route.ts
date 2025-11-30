@@ -15,13 +15,10 @@ type UserPlaylistRow = RowDataPacket & {
   artist_name: string | null;
 };
 
-type RouteContext = {
-  params: Promise<{
-    userId: string;
-  }>;
-};
-
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ userId: string }> }
+) {
   const { userId: userIdParam } = await context.params;
 
   const userId = Number(userIdParam);

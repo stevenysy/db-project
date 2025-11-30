@@ -12,3 +12,10 @@ export type Playlist = {
   songs: Song[];
 };
 
+export type ApiSong = {
+  id: number;
+  title: string;
+  artist: string;
+  genre: string;
+  releaseDate: string | null;
+};

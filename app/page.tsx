@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 
+import { AddSongModal } from "./components/AddSongModal";
 import { PlaylistCard } from "./components/PlaylistCard";
 import { PlaylistModal } from "./components/PlaylistModal";
-import type { Playlist } from "./types";
+import type { ApiSong, Playlist } from "./types";
 
 const user = {
   id: 1,
@@ -23,6 +24,9 @@ export default function Home() {
   const [popularPlaylists, setPopularPlaylists] = useState<Playlist[]>([]);
   const [isLoadingPopular, setIsLoadingPopular] = useState(true);
   const [popularError, setPopularError] = useState<string | null>(null);
+  const [playlistForAddSong, setPlaylistForAddSong] = useState<Playlist | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchUserPlaylists = async () => {
@@ -122,8 +126,101 @@ export default function Home() {
     setSelectedPlaylist(playlist);
   };
 
+  const handleAddSongRequest = (playlist: Playlist) => {
+    setSelectedPlaylist(null);
+    setPlaylistForAddSong(playlist);
+  };
+
   const closeModal = () => {
     setSelectedPlaylist(null);
+  };
+
+  const closeAddSongModal = () => {
+    setPlaylistForAddSong(null);
+  };
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isAddingSong, setIsAddingSong] = useState(false);
+
+  const handleSongAdded = async (playlistId: string, song: ApiSong) => {
+    try {
+      setIsAddingSong(true);
+      const response = await fetch(`/api/playlists/${playlistId}/songs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ songId: song.id }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add song to playlist");
+      }
+
+      setUserPlaylists((prev) =>
+        prev.map((playlist) =>
+          playlist.id === playlistId
+            ? {
+                ...playlist,
+                songs: [
+                  ...playlist.songs,
+                  {
+                    id: song.id.toString(),
+                    title: song.title,
+                    artist: song.artist,
+                  },
+                ],
+              }
+            : playlist
+        )
+      );
+
+      setPopularPlaylists((prev) =>
+        prev.map((playlist) =>
+          playlist.id === playlistId
+            ? {
+                ...playlist,
+                songs: [
+                  ...playlist.songs,
+                  {
+                    id: song.id.toString(),
+                    title: song.title,
+                    artist: song.artist,
+                  },
+                ],
+              }
+            : playlist
+        )
+      );
+
+      setSelectedPlaylist((current) =>
+        current && current.id === playlistId
+          ? {
+              ...current,
+              songs: [
+                ...current.songs,
+                {
+                  id: song.id.toString(),
+                  title: song.title,
+                  artist: song.artist,
+                },
+              ],
+            }
+          : current
+      );
+
+      setToastMessage(`Added "${song.title}" to the playlist!`);
+    } catch (error) {
+      console.error(error);
+      setToastMessage(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while adding the song"
+      );
+    } finally {
+      setIsAddingSong(false);
+      setPlaylistForAddSong(null);
+    }
   };
 
   return (
@@ -211,7 +308,33 @@ export default function Home() {
       </div>
 
       {selectedPlaylist && (
-        <PlaylistModal playlist={selectedPlaylist} onClose={closeModal} />
+        <PlaylistModal
+          playlist={selectedPlaylist}
+          isOwner={selectedPlaylist.owner === user.username}
+          onClose={closeModal}
+          onAddSong={handleAddSongRequest}
+        />
+      )}
+
+      {playlistForAddSong && (
+        <AddSongModal
+          playlist={playlistForAddSong}
+          onClose={closeAddSongModal}
+          onSongSelect={(song) => handleSongAdded(playlistForAddSong.id, song)}
+        />
+      )}
+
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 transform rounded-full bg-zinc-900 px-6 py-3 text-sm font-medium text-white shadow-lg">
+          {toastMessage}
+          <button
+            type="button"
+            onClick={() => setToastMessage(null)}
+            className="ml-3 text-xs text-zinc-300 underline"
+          >
+            Dismiss
+          </button>
+        </div>
       )}
     </div>
   );

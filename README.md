@@ -63,6 +63,40 @@ Example response:
 }
 ```
 
+### `GET /api/songs/search?q=<query>`
+
+Returns up to 20 songs whose names contain the provided query string.
+
+Example response:
+
+```json
+{
+  "songs": [
+    {
+      "id": 1,
+      "title": "No title",
+      "artist": "Reol",
+      "genre": "J-Pop",
+      "releaseDate": "2014-08-13"
+    }
+  ]
+}
+```
+
+### `POST /api/playlists/:playlistId/songs`
+
+Adds an existing song to the specified playlist.
+
+Request body:
+
+```json
+{
+  "songId": 4
+}
+```
+
+Returns HTTP 201 on success.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
