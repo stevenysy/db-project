@@ -27,12 +27,14 @@ export function AddSongModal({
     if (!query.trim()) {
       setResults([]);
       setSearchError(null);
+      setSubmitError(null);
       return;
     }
 
     try {
       setIsSearching(true);
       setSearchError(null);
+      setSubmitError(null);
       const response = await fetch(
         `/api/songs/search?q=${encodeURIComponent(query.trim())}`
       );

@@ -43,6 +43,15 @@ CREATE TABLE PLAYLIST_SONGS (
     FOREIGN KEY (song_id) REFERENCES SONG (song_id) ON DELETE CASCADE
 );
 
+CREATE TABLE PLAYLIST_LIKES (
+    playlist_id INT NOT NULL,
+    user_id INT NOT NULL,
+    liked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (playlist_id, user_id),
+    FOREIGN KEY (playlist_id) REFERENCES PLAYLIST (playlist_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES USER (user_id) ON DELETE CASCADE
+);
+
 CREATE TABLE ALBUM (
     artist_id INT,
     name VARCHAR(15) NOT NULL,
@@ -68,10 +77,10 @@ SET @user_1_id := LAST_INSERT_ID();
 INSERT INTO USER (username) VALUES ('user_2');
 SET @user_2_id := LAST_INSERT_ID();
 
-INSERT INTO PLAYLIST (name, number_of_likes, uploader_id) VALUES ('Focus Beats', 10, @user_1_id);
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id) VALUES ('Focus Beats', 1, @user_1_id);
 SET @playlist_1_id := LAST_INSERT_ID();
 
-INSERT INTO PLAYLIST (name, number_of_likes, uploader_id) VALUES ('Workout Essentials', 8, @user_2_id);
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id) VALUES ('Workout Essentials', 1, @user_2_id);
 SET @playlist_2_id := LAST_INSERT_ID();
 
 INSERT INTO ARTIST (name) VALUES ('Reol');
@@ -274,8 +283,12 @@ INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
 (@playlist_2_id, @song_3_id),
 (@playlist_2_id, @song_8_id);
 
-INSERT INTO PLAYLIST (name, number_of_likes, uploader_id) VALUES ('Indie Chill', 15, @user_1_id);
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id) VALUES ('Indie Chill', 0, @user_1_id);
 SET @playlist_3_id := LAST_INSERT_ID();
+
+INSERT INTO PLAYLIST_LIKES (playlist_id, user_id) VALUES
+(@playlist_1_id, @user_2_id),
+(@playlist_2_id, @user_1_id);
 
 INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
 (@playlist_3_id, @song_5_id),

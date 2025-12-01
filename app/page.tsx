@@ -29,6 +29,9 @@ export default function Home() {
     null
   );
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [likedPlaylistIds, setLikedPlaylistIds] = useState<Set<string>>(
+    () => new Set()
+  );
 
   useEffect(() => {
     const fetchUserPlaylists = async () => {
@@ -75,7 +78,7 @@ export default function Home() {
     };
 
     fetchUserPlaylists();
-  }, []);
+  }, [user.id]);
 
   useEffect(() => {
     const fetchPopularPlaylists = async () => {
@@ -122,10 +125,113 @@ export default function Home() {
     };
 
     fetchPopularPlaylists();
-  }, []);
+  }, [user.id]);
+
+  useEffect(() => {
+    const fetchLikedPlaylists = async () => {
+      try {
+        const response = await fetch(`/api/users/${user.id}/liked-playlists`);
+        if (!response.ok) {
+          throw new Error("Failed to load liked playlists");
+        }
+
+        const data: {
+          likedPlaylists: Array<{ id: number }>;
+        } = await response.json();
+
+        setLikedPlaylistIds(
+          new Set(data.likedPlaylists.map((playlist) => playlist.id.toString()))
+        );
+      } catch (error) {
+        console.error(error);
+        // Leave likedPlaylistIds unchanged on failure.
+      }
+    };
+
+    fetchLikedPlaylists();
+  }, [user.id]);
 
   const handleCardClick = (playlist: Playlist) => {
     setSelectedPlaylist(playlist);
+  };
+
+  const handleToggleLike = async (playlist: Playlist) => {
+    setIsMutating(true);
+    const currentlyLiked = likedPlaylistIds.has(playlist.id);
+    const nextLiked = !currentlyLiked;
+    try {
+      const response = await fetch(`/api/playlists/${playlist.id}/likes`, {
+        method: nextLiked ? "POST" : "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const message =
+          (result && result.error) ||
+          (nextLiked
+            ? "Failed to like playlist"
+            : "Failed to remove like from playlist");
+        throw new Error(message);
+      }
+
+      const likes =
+        typeof result.likes === "number"
+          ? result.likes
+          : Math.max(0, playlist.likes + (nextLiked ? 1 : -1));
+
+      setLikedPlaylistIds((prev) => {
+        const updated = new Set(prev);
+        if (nextLiked) {
+          updated.add(playlist.id);
+        } else {
+          updated.delete(playlist.id);
+        }
+        return updated;
+      });
+
+      setPopularPlaylists((prev) => {
+        const updated = prev.map((item) =>
+          item.id === playlist.id
+            ? {
+                ...item,
+                likes,
+              }
+            : item
+        );
+        return [...updated].sort(
+          (a, b) => b.likes - a.likes || Number(a.id) - Number(b.id)
+        );
+      });
+
+      setSelectedPlaylist((current) =>
+        current && current.id === playlist.id
+          ? {
+              ...current,
+              likes,
+            }
+          : current
+      );
+
+      setToastMessage(
+        nextLiked
+          ? `Liked "${playlist.title}".`
+          : `Removed like from "${playlist.title}".`
+      );
+    } catch (error) {
+      console.error(error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while updating the like";
+      setToastMessage(message);
+    } finally {
+      setIsMutating(false);
+    }
   };
 
   const handleAddSongRequest = (playlist: Playlist) => {
@@ -155,27 +261,18 @@ export default function Home() {
         body: JSON.stringify({ name, uploaderId: user.id }),
       });
 
+      const result = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        const errorBody = await response.json().catch(() => null);
-        const message =
-          (errorBody && errorBody.error) || "Failed to create playlist";
+        const message = (result && result.error) || "Failed to create playlist";
         throw new Error(message);
       }
 
-      const data: {
-        playlist: {
-          id: number;
-          name: string;
-          number_of_likes: number;
-          uploader_id: number;
-        };
-      } = await response.json();
-
       const newPlaylist: Playlist = {
-        id: data.playlist.id.toString(),
-        title: data.playlist.name,
+        id: result.playlist.id.toString(),
+        title: result.playlist.name,
         owner: user.username,
-        likes: data.playlist.number_of_likes,
+        likes: result.playlist.number_of_likes,
         songs: [],
       };
 
@@ -191,7 +288,7 @@ export default function Home() {
           ? error.message
           : "Something went wrong while creating the playlist";
       setToastMessage(message);
-      throw new Error(message);
+      throw error instanceof Error ? error : new Error(message);
     } finally {
       setIsMutating(false);
     }
@@ -367,6 +464,15 @@ export default function Home() {
         current && current.id === playlist.id ? null : current
       );
 
+      setLikedPlaylistIds((prev) => {
+        if (!prev.has(playlist.id)) {
+          return prev;
+        }
+        const updated = new Set(prev);
+        updated.delete(playlist.id);
+        return updated;
+      });
+
       setToastMessage(`Deleted "${playlist.title}".`);
     } catch (error) {
       console.error(error);
@@ -457,6 +563,10 @@ export default function Home() {
                       playlist={playlist}
                       variant="popular"
                       onSelect={handleCardClick}
+                      showLikeButton={playlist.owner !== user.username}
+                      isLiked={likedPlaylistIds.has(playlist.id)}
+                      onToggleLike={handleToggleLike}
+                      isMutating={isMutating}
                     />
                   ))
                 ) : (

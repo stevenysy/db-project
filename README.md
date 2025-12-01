@@ -82,6 +82,26 @@ Example response:
 }
 ```
 
+### `GET /api/users/:userId/liked-playlists`
+
+Returns every playlist the specified user has liked.
+
+Example response:
+
+```json
+{
+  "likedPlaylists": [
+    {
+      "id": 5,
+      "name": "Workout Essentials",
+      "likes": 12,
+      "uploaderId": 2,
+      "uploader": "user_2"
+    }
+  ]
+}
+```
+
 ### `GET /api/songs/search?q=<query>`
 
 Returns up to 20 songs whose names contain the provided query string.
@@ -117,6 +137,20 @@ Request body:
 
 Returns HTTP 201 with the newly created playlist id.
 
+### `POST /api/playlists/:playlistId/likes`
+
+Registers a like for the specified playlist on behalf of a user.
+
+Request body:
+
+```json
+{
+  "userId": 1
+}
+```
+
+Returns HTTP 201 with the updated like count (idempotent if the user already liked the playlist).
+
 ### `POST /api/playlists/:playlistId/songs`
 
 Adds an existing song to the specified playlist.
@@ -134,6 +168,10 @@ Returns HTTP 201 on success.
 ### `DELETE /api/playlists/:playlistId/songs/:songId`
 
 Removes a song from the specified playlist. Returns HTTP 200 on success.
+
+### `DELETE /api/playlists/:playlistId/likes`
+
+Removes the calling user's like from the specified playlist (idempotent). Returns HTTP 200 with the updated like count.
 
 ### `DELETE /api/playlists/:playlistId`
 
