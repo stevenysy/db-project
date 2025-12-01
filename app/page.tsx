@@ -8,6 +8,7 @@ import { AddSongModal } from "./components/AddSongModal";
 import { CreatePlaylistModal } from "./components/CreatePlaylistModal";
 import { PlaylistCard } from "./components/PlaylistCard";
 import { PlaylistModal } from "./components/PlaylistModal";
+import { RecommendationsModal } from "./components/RecommendationsModal";
 import type { ApiSong, Playlist } from "./types";
 
 export default function Home() {
@@ -37,6 +38,19 @@ export default function Home() {
   const [likedPlaylistsError, setLikedPlaylistsError] = useState<string | null>(
     null
   );
+  const [isRecommendationsOpen, setIsRecommendationsOpen] = useState(false);
+  const [isLoadingRecommendations, setIsLoadingRecommendations] =
+    useState(false);
+  const [recommendationsError, setRecommendationsError] = useState<
+    string | null
+  >(null);
+  const [recommendationsMessage, setRecommendationsMessage] = useState<
+    string | null
+  >(null);
+  const [recommendedSongs, setRecommendedSongs] = useState<Playlist["songs"]>(
+    []
+  );
+  const [favoriteGenres, setFavoriteGenres] = useState<string[]>([]);
 
   const sortByLikes = (items: Playlist[]) =>
     [...items].sort((a, b) => {
@@ -365,6 +379,12 @@ export default function Home() {
     setIsCreateModalOpen(false);
     setToastMessage(null);
     setIsMutating(false);
+    setIsRecommendationsOpen(false);
+    setRecommendedSongs([]);
+    setRecommendationsError(null);
+    setRecommendationsMessage(null);
+    setFavoriteGenres([]);
+    setIsLoadingRecommendations(false);
   }, [user]);
 
   const handleCreatePlaylist = async (name: string) => {
@@ -641,6 +661,76 @@ export default function Home() {
     }
   };
 
+  const fetchRecommendations = async () => {
+    if (!user) {
+      return;
+    }
+
+    setIsLoadingRecommendations(true);
+    setRecommendationsError(null);
+    setRecommendationsMessage(null);
+    setFavoriteGenres([]);
+    setRecommendedSongs([]);
+
+    try {
+      const response = await fetch(`/api/users/${user.id}/recommendations`);
+      const data: {
+        recommendations?: Array<{
+          id: number;
+          title: string;
+          artist: string;
+        }>;
+        message?: string;
+        error?: string;
+        favoriteGenres?: string[];
+      } = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const message = data.error || "Failed to load recommendations.";
+        throw new Error(message);
+      }
+
+      const songs =
+        Array.isArray(data.recommendations) && data.recommendations.length > 0
+          ? data.recommendations.map((song) => ({
+              id: song.id.toString(),
+              title: song.title,
+              artist: song.artist,
+            }))
+          : [];
+
+      setRecommendedSongs(songs);
+      setRecommendationsMessage(
+        typeof data.message === "string" ? data.message : null
+      );
+      setFavoriteGenres(
+        Array.isArray(data.favoriteGenres) ? data.favoriteGenres : []
+      );
+    } catch (error) {
+      console.error(error);
+      setRecommendationsError(
+        error instanceof Error
+          ? error.message
+          : "Failed to load recommendations."
+      );
+    } finally {
+      setIsLoadingRecommendations(false);
+    }
+  };
+
+  const handleOpenRecommendations = () => {
+    if (!user) {
+      setToastMessage("Please log in to view recommendations.");
+      return;
+    }
+    setIsRecommendationsOpen(true);
+    void fetchRecommendations();
+  };
+
+  const handleCloseRecommendations = () => {
+    setIsRecommendationsOpen(false);
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen bg-zinc-100 text-zinc-900">
@@ -700,13 +790,22 @@ export default function Home() {
               <h1 className="text-2xl font-semibold">{user.username}</h1>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={logout}
-            className="rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-300 focus:ring-offset-2 focus:ring-offset-white"
-          >
-            Log out
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleOpenRecommendations}
+              className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-2 focus:ring-offset-white"
+            >
+              Get Recommendations
+            </button>
+            <button
+              type="button"
+              onClick={logout}
+              className="rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-300 focus:ring-offset-2 focus:ring-offset-white"
+            >
+              Log out
+            </button>
+          </div>
         </header>
 
         <div className="grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -827,6 +926,20 @@ export default function Home() {
           </section>
         </div>
       </div>
+
+      {isRecommendationsOpen && (
+        <RecommendationsModal
+          songs={recommendedSongs}
+          isLoading={isLoadingRecommendations}
+          error={recommendationsError}
+          message={recommendationsMessage}
+          topGenres={favoriteGenres}
+          onRetry={() => {
+            void fetchRecommendations();
+          }}
+          onClose={handleCloseRecommendations}
+        />
+      )}
 
       {selectedPlaylist && (
         <PlaylistModal
