@@ -32,6 +32,25 @@ export default function Home() {
   const [likedPlaylistIds, setLikedPlaylistIds] = useState<Set<string>>(
     () => new Set()
   );
+  const [likedPlaylists, setLikedPlaylists] = useState<Playlist[]>([]);
+  const [isLoadingLikedPlaylists, setIsLoadingLikedPlaylists] = useState(true);
+  const [likedPlaylistsError, setLikedPlaylistsError] = useState<string | null>(
+    null
+  );
+
+  const sortByLikes = (items: Playlist[]) =>
+    [...items].sort((a, b) => {
+      const likeDiff = b.likes - a.likes;
+      if (likeDiff !== 0) {
+        return likeDiff;
+      }
+      const aId = Number(a.id);
+      const bId = Number(b.id);
+      if (!Number.isNaN(aId) && !Number.isNaN(bId)) {
+        return aId - bId;
+      }
+      return a.id.localeCompare(b.id);
+    });
 
   useEffect(() => {
     if (!user) {
@@ -128,7 +147,7 @@ export default function Home() {
           })),
         }));
 
-        setPopularPlaylists(playlists);
+        setPopularPlaylists(sortByLikes(playlists));
         setPopularError(null);
       } catch (error) {
         console.error(error);
@@ -147,13 +166,17 @@ export default function Home() {
 
   useEffect(() => {
     if (!user) {
+      setLikedPlaylists([]);
       setLikedPlaylistIds(new Set());
+      setLikedPlaylistsError(null);
+      setIsLoadingLikedPlaylists(false);
       return;
     }
 
     const userId = user.id;
 
     const fetchLikedPlaylists = async () => {
+      setIsLoadingLikedPlaylists(true);
       try {
         const response = await fetch(`/api/users/${userId}/liked-playlists`);
         if (!response.ok) {
@@ -161,15 +184,35 @@ export default function Home() {
         }
 
         const data: {
-          likedPlaylists: Array<{ id: number }>;
+          likedPlaylists: Array<{
+            id: number;
+            name: string;
+            likes: number;
+            uploaderId: number | null;
+            uploader: string | null;
+          }>;
         } = await response.json();
 
-        setLikedPlaylistIds(
-          new Set(data.likedPlaylists.map((playlist) => playlist.id.toString()))
-        );
+        const playlists = data.likedPlaylists.map((playlist) => ({
+          id: playlist.id.toString(),
+          title: playlist.name,
+          owner: playlist.uploader ?? "Unknown",
+          likes: playlist.likes,
+          songs: [],
+        }));
+
+        setLikedPlaylists(sortByLikes(playlists));
+        setLikedPlaylistIds(new Set(playlists.map((playlist) => playlist.id)));
+        setLikedPlaylistsError(null);
       } catch (error) {
         console.error(error);
-        // Leave likedPlaylistIds unchanged on failure.
+        setLikedPlaylistsError(
+          error instanceof Error
+            ? error.message
+            : "Something went wrong while fetching liked playlists"
+        );
+      } finally {
+        setIsLoadingLikedPlaylists(false);
       }
     };
 
@@ -239,6 +282,25 @@ export default function Home() {
         return updated;
       });
 
+      setLikedPlaylists((prev) => {
+        if (nextLiked) {
+          const existing = prev.find((item) => item.id === playlist.id);
+          if (existing) {
+            const updated = prev.map((item) =>
+              item.id === playlist.id ? { ...item, likes } : item
+            );
+            return sortByLikes(updated);
+          }
+          const nextPlaylist: Playlist = {
+            ...playlist,
+            likes,
+          };
+          return sortByLikes([nextPlaylist, ...prev]);
+        }
+
+        return sortByLikes(prev.filter((item) => item.id !== playlist.id));
+      });
+
       setPopularPlaylists((prev) => {
         const updated = prev.map((item) =>
           item.id === playlist.id
@@ -248,9 +310,7 @@ export default function Home() {
               }
             : item
         );
-        return [...updated].sort(
-          (a, b) => b.likes - a.likes || Number(a.id) - Number(b.id)
-        );
+        return sortByLikes(updated);
       });
 
       setSelectedPlaylist((current) =>
@@ -407,6 +467,24 @@ export default function Home() {
         )
       );
 
+      setLikedPlaylists((prev) =>
+        prev.map((playlist) =>
+          playlist.id === playlistId
+            ? {
+                ...playlist,
+                songs: [
+                  ...playlist.songs,
+                  {
+                    id: song.id.toString(),
+                    title: song.title,
+                    artist: song.artist,
+                  },
+                ],
+              }
+            : playlist
+        )
+      );
+
       setSelectedPlaylist((current) =>
         current && current.id === playlistId
           ? {
@@ -477,6 +555,17 @@ export default function Home() {
         )
       );
 
+      setLikedPlaylists((prev) =>
+        prev.map((current) =>
+          current.id === playlist.id
+            ? {
+                ...current,
+                songs: current.songs.filter((item) => item.id !== song.id),
+              }
+            : current
+        )
+      );
+
       setSelectedPlaylist((current) =>
         current && current.id === playlist.id
           ? {
@@ -515,6 +604,10 @@ export default function Home() {
       );
 
       setPopularPlaylists((prev) =>
+        prev.filter((current) => current.id !== playlist.id)
+      );
+
+      setLikedPlaylists((prev) =>
         prev.filter((current) => current.id !== playlist.id)
       );
 
@@ -616,7 +709,7 @@ export default function Home() {
           </button>
         </header>
 
-        <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid flex-1 grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           <section className="rounded-3xl bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-zinc-950">
@@ -652,6 +745,45 @@ export default function Home() {
                 ) : (
                   <p className="text-sm text-zinc-500">
                     You have not uploaded any playlists yet.
+                  </p>
+                ))}
+            </div>
+          </section>
+
+          <section className="rounded-3xl bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-zinc-950">
+                Liked Playlists
+              </h2>
+              <span className="text-sm text-zinc-500">Saved favorites</span>
+            </div>
+            <div className="mt-5 flex flex-col gap-4">
+              {isLoadingLikedPlaylists && (
+                <p className="text-sm text-zinc-500">
+                  Loading liked playlists…
+                </p>
+              )}
+              {likedPlaylistsError && (
+                <p className="text-sm text-red-500">{likedPlaylistsError}</p>
+              )}
+              {!isLoadingLikedPlaylists &&
+                !likedPlaylistsError &&
+                (likedPlaylists.length > 0 ? (
+                  likedPlaylists.map((playlist) => (
+                    <PlaylistCard
+                      key={playlist.id}
+                      playlist={playlist}
+                      variant="liked"
+                      onSelect={handleCardClick}
+                      showLikeButton
+                      isLiked={likedPlaylistIds.has(playlist.id)}
+                      onToggleLike={handleToggleLike}
+                      isMutating={isMutating}
+                    />
+                  ))
+                ) : (
+                  <p className="text-sm text-zinc-500">
+                    You have not liked any playlists yet.
                   </p>
                 ))}
             </div>

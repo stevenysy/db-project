@@ -4,7 +4,7 @@ import type { Playlist } from "../types";
 
 type PlaylistCardProps = {
   playlist: Playlist;
-  variant: "user" | "popular";
+  variant: "user" | "liked" | "popular";
   onSelect: (playlist: Playlist) => void;
   showLikeButton?: boolean;
   isLiked?: boolean;
@@ -17,6 +17,11 @@ const variantStyles = {
     borderHover: "hover:border-sky-400",
     ring: "focus:ring-sky-400",
     likesText: "text-sky-600",
+  },
+  liked: {
+    borderHover: "hover:border-violet-400",
+    ring: "focus:ring-violet-400",
+    likesText: "text-violet-500",
   },
   popular: {
     borderHover: "hover:border-emerald-400",
@@ -36,7 +41,7 @@ export function PlaylistCard({
 }: PlaylistCardProps) {
   const styles = variantStyles[variant];
 
-  const isPopular = variant === "popular";
+  const showOwnerDetails = variant !== "user";
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -106,7 +111,7 @@ export function PlaylistCard({
           </button>
         )}
       </div>
-      {isPopular ? (
+      {showOwnerDetails ? (
         <div className="flex items-center justify-between text-sm text-zinc-500">
           <span>By {playlist.owner}</span>
           <span>{playlist.songs.length} songs</span>
