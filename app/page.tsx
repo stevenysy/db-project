@@ -51,6 +51,44 @@ export default function Home() {
     []
   );
   const [favoriteGenres, setFavoriteGenres] = useState<string[]>([]);
+  const [userLikeCount, setUserLikeCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setUserLikeCount(null);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const fetchUserLikeCount = async () => {
+      try {
+        const response = await fetch(`/api/users/${user.id}/likes`);
+        if (!response.ok) {
+          throw new Error("Failed to load like count");
+        }
+
+        const data: { totalLikes?: number } = await response.json();
+
+        if (!isCancelled) {
+          setUserLikeCount(
+            typeof data.totalLikes === "number" ? data.totalLikes : 0
+          );
+        }
+      } catch (error) {
+        console.error(error);
+        if (!isCancelled) {
+          setUserLikeCount(0);
+        }
+      }
+    };
+
+    fetchUserLikeCount();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [user]);
 
   const sortByLikes = (items: Playlist[]) =>
     [...items].sort((a, b) => {
@@ -785,9 +823,17 @@ export default function Home() {
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-300 text-xl font-semibold text-zinc-700">
               {user.username.charAt(0).toUpperCase()}
             </div>
-            <div>
+            <div className="flex flex-col gap-1">
               <p className="text-sm text-zinc-500">Logged in as</p>
-              <h1 className="text-2xl font-semibold">{user.username}</h1>
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h1 className="text-2xl font-semibold">{user.username}</h1>
+                {userLikeCount !== null && (
+                  <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
+                    {userLikeCount} total like
+                    {userLikeCount === 1 ? "" : "s"}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
