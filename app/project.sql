@@ -312,4 +312,289 @@ INSERT INTO ALBUM_SONGS (artist_id, name, song_id) VALUES
 (@artist_4_id, 'Evolve', @song_7_id),
 (@artist_4_id, 'Evolve', @song_8_id);
 
+-- Additional seed data
+
+-- New Users
+INSERT INTO USER (username) VALUES ('melody_mx');
+SET @user_3_id := LAST_INSERT_ID();
+
+INSERT INTO USER (username) VALUES ('sunrise_sam');
+SET @user_4_id := LAST_INSERT_ID();
+
+INSERT INTO USER (username) VALUES ('nightowl_jo');
+SET @user_5_id := LAST_INSERT_ID();
+
+INSERT INTO USER (username) VALUES ('vinyl_ari');
+SET @user_6_id := LAST_INSERT_ID();
+
+INSERT INTO USER (username) VALUES ('beatseeker');
+SET @user_7_id := LAST_INSERT_ID();
+
+INSERT INTO USER (username) VALUES ('lofi_luke');
+SET @user_8_id := LAST_INSERT_ID();
+
+-- New Artists
+INSERT INTO ARTIST (name) VALUES ('Halsey');
+SET @artist_15_id := LAST_INSERT_ID();
+
+INSERT INTO ARTIST (name) VALUES ('Tame Impala');
+SET @artist_16_id := LAST_INSERT_ID();
+
+INSERT INTO ARTIST (name) VALUES ('ODESZA');
+SET @artist_17_id := LAST_INSERT_ID();
+
+INSERT INTO ARTIST (name) VALUES ('Grimes');
+SET @artist_18_id := LAST_INSERT_ID();
+
+INSERT INTO ARTIST (name) VALUES ('Disclosure');
+SET @artist_19_id := LAST_INSERT_ID();
+
+INSERT INTO ARTIST (name) VALUES ('Lorde');
+SET @artist_20_id := LAST_INSERT_ID();
+
+-- Songs by Halsey
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Colors', @artist_15_id, '2015-02-09', 'Alt-Pop');
+SET @song_colors_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Ghost', @artist_15_id, '2014-07-28', 'Alt-Pop');
+SET @song_ghost_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Gasoline', @artist_15_id, '2015-10-29', 'Alt-Pop');
+SET @song_gasoline_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Control', @artist_15_id, '2016-08-25', 'Alt-Pop');
+SET @song_control_id := LAST_INSERT_ID();
+
+-- Songs by Tame Impala
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Elephant', @artist_16_id, '2012-07-25', 'Alt-Rock');
+SET @song_elephant_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Let It Happen', @artist_16_id, '2015-03-10', 'Alt-Rock');
+SET @song_letithappen_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Borderline', @artist_16_id, '2019-04-12', 'Alt-Rock');
+SET @song_borderline_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Patience', @artist_16_id, '2019-03-22', 'Alt-Rock');
+SET @song_patience_id := LAST_INSERT_ID();
+
+-- Songs by ODESZA
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Say My Name', @artist_17_id, '2014-09-16', 'Electronic');
+SET @song_saymyname_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Line of Sight', @artist_17_id, '2017-04-25', 'Electronic');
+SET @song_lineofsight_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('A Moment', @artist_17_id, '2019-07-25', 'Electronic');
+SET @song_amoment_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Across Room', @artist_17_id, '2017-09-22', 'Electronic');
+SET @song_acrossroom_id := LAST_INSERT_ID();
+
+-- Songs by Grimes
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Oblivion', @artist_18_id, '2012-03-06', 'Alt-Pop');
+SET @song_oblivion_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Genesis', @artist_18_id, '2011-12-05', 'Alt-Pop');
+SET @song_genesis_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Flesh Bone', @artist_18_id, '2012-04-20', 'Alt-Pop');
+SET @song_fleshbone_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Realiti', @artist_18_id, '2015-03-08', 'Alt-Pop');
+SET @song_realiti_id := LAST_INSERT_ID();
+
+-- Songs by Disclosure
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Latch', @artist_19_id, '2012-10-08', 'Electronic');
+SET @song_latch_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Omen', @artist_19_id, '2015-07-27', 'Electronic');
+SET @song_omen_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Magnets', @artist_19_id, '2015-09-23', 'Electronic');
+SET @song_magnets_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('WhiteNoise', @artist_19_id, '2013-02-01', 'Electronic');
+SET @song_whitenoise_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Talk', @artist_19_id, '2019-05-10', 'Electronic');
+SET @song_talk_id := LAST_INSERT_ID();
+
+-- Songs by Lorde
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Royals', @artist_20_id, '2013-06-03', 'Alt-Pop');
+SET @song_royals_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Team', @artist_20_id, '2013-09-10', 'Alt-Pop');
+SET @song_team_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Green Light', @artist_20_id, '2017-03-02', 'Alt-Pop');
+SET @song_greenlight_id := LAST_INSERT_ID();
+
+INSERT INTO SONG (name, artist_id, release_date, genre)
+VALUES ('Ribs', @artist_20_id, '2013-06-03', 'Alt-Pop');
+SET @song_ribs_id := LAST_INSERT_ID();
+
+-- New Playlists
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id)
+VALUES ('Morning Flow', 3, @user_3_id);
+SET @playlist_4_id := LAST_INSERT_ID();
+
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id)
+VALUES ('Late Night Neon', 3, @user_4_id);
+SET @playlist_5_id := LAST_INSERT_ID();
+
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id)
+VALUES ('Acoustic Sun', 2, @user_5_id);
+SET @playlist_6_id := LAST_INSERT_ID();
+
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id)
+VALUES ('Global Grooves', 4, @user_6_id);
+SET @playlist_7_id := LAST_INSERT_ID();
+
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id)
+VALUES ('Indie Pulse', 3, @user_7_id);
+SET @playlist_8_id := LAST_INSERT_ID();
+
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id)
+VALUES ('Electric Run', 3, @user_8_id);
+SET @playlist_9_id := LAST_INSERT_ID();
+
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id)
+VALUES ('Soul Soiree', 2, @user_3_id);
+SET @playlist_10_id := LAST_INSERT_ID();
+
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id)
+VALUES ('HipHop Heat', 3, @user_4_id);
+SET @playlist_11_id := LAST_INSERT_ID();
+
+INSERT INTO PLAYLIST (name, number_of_likes, uploader_id)
+VALUES ('Chillwave Mix', 4, @user_6_id);
+SET @playlist_12_id := LAST_INSERT_ID();
+
+-- Likes for new playlists
+INSERT INTO PLAYLIST_LIKES (playlist_id, user_id) VALUES
+(@playlist_4_id, @user_1_id),
+(@playlist_4_id, @user_3_id),
+(@playlist_4_id, @user_5_id),
+(@playlist_5_id, @user_2_id),
+(@playlist_5_id, @user_4_id),
+(@playlist_5_id, @user_7_id),
+(@playlist_6_id, @user_3_id),
+(@playlist_6_id, @user_6_id),
+(@playlist_7_id, @user_4_id),
+(@playlist_7_id, @user_5_id),
+(@playlist_7_id, @user_6_id),
+(@playlist_7_id, @user_8_id),
+(@playlist_8_id, @user_2_id),
+(@playlist_8_id, @user_3_id),
+(@playlist_8_id, @user_7_id),
+(@playlist_9_id, @user_1_id),
+(@playlist_9_id, @user_5_id),
+(@playlist_9_id, @user_8_id),
+(@playlist_10_id, @user_4_id),
+(@playlist_10_id, @user_6_id),
+(@playlist_11_id, @user_1_id),
+(@playlist_11_id, @user_4_id),
+(@playlist_11_id, @user_8_id),
+(@playlist_12_id, @user_3_id),
+(@playlist_12_id, @user_5_id),
+(@playlist_12_id, @user_7_id),
+(@playlist_12_id, @user_8_id);
+
+-- References to existing songs for playlist population
+SET @song_inmyfeel_id := (SELECT song_id FROM SONG WHERE name = 'In My Feel' AND artist_id = @artist_8_id);
+SET @song_levitating_id := (SELECT song_id FROM SONG WHERE name = 'Levitating' AND artist_id = @artist_11_id);
+SET @song_adventure_id := (SELECT song_id FROM SONG WHERE name = 'Adventure' AND artist_id = @artist_12_id);
+SET @song_love_id := (SELECT song_id FROM SONG WHERE name = 'Love' AND artist_id = @artist_14_id);
+SET @song_humble_id := (SELECT song_id FROM SONG WHERE name = 'Humble' AND artist_id = @artist_14_id);
+SET @song_dna_id := (SELECT song_id FROM SONG WHERE name = 'DNA' AND artist_id = @artist_14_id);
+SET @song_godsplan_id := (SELECT song_id FROM SONG WHERE name = 'Gods Plan' AND artist_id = @artist_8_id);
+SET @song_notafraid_id := (SELECT song_id FROM SONG WHERE name = 'Not Afraid' AND artist_id = @artist_9_id);
+SET @song_oceaneyes_id := (SELECT song_id FROM SONG WHERE name = 'Ocean Eyes' AND artist_id = @artist_5_id);
+
+-- Songs for new playlists
+-- Morning Flow
+INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
+(@playlist_4_id, @song_colors_id),
+(@playlist_4_id, @song_letithappen_id),
+(@playlist_4_id, @song_saymyname_id);
+
+-- Late Night Neon
+INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
+(@playlist_5_id, @song_gasoline_id),
+(@playlist_5_id, @song_realiti_id),
+(@playlist_5_id, @song_whitenoise_id),
+(@playlist_5_id, @song_inmyfeel_id);
+
+-- Acoustic Sun
+INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
+(@playlist_6_id, @song_patience_id),
+(@playlist_6_id, @song_ghost_id),
+(@playlist_6_id, @song_ribs_id);
+
+-- Global Grooves
+INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
+(@playlist_7_id, @song_amoment_id),
+(@playlist_7_id, @song_magnets_id),
+(@playlist_7_id, @song_royals_id),
+(@playlist_7_id, @song_levitating_id);
+
+-- Indie Pulse
+INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
+(@playlist_8_id, @song_oblivion_id),
+(@playlist_8_id, @song_elephant_id),
+(@playlist_8_id, @song_team_id),
+(@playlist_8_id, @song_adventure_id);
+
+-- Electric Run
+INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
+(@playlist_9_id, @song_lineofsight_id),
+(@playlist_9_id, @song_talk_id),
+(@playlist_9_id, @song_greenlight_id),
+(@playlist_9_id, @song_7_id);
+
+-- Soul Soiree
+INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
+(@playlist_10_id, @song_control_id),
+(@playlist_10_id, @song_latch_id),
+(@playlist_10_id, @song_love_id);
+
+-- HipHop Heat
+INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
+(@playlist_11_id, @song_humble_id),
+(@playlist_11_id, @song_dna_id),
+(@playlist_11_id, @song_godsplan_id),
+(@playlist_11_id, @song_notafraid_id);
+
+-- Chillwave Mix
+INSERT INTO PLAYLIST_SONGS (playlist_id, song_id) VALUES
+(@playlist_12_id, @song_acrossroom_id),
+(@playlist_12_id, @song_genesis_id),
+(@playlist_12_id, @song_saymyname_id),
+(@playlist_12_id, @song_oceaneyes_id);
+
 -- Functions
