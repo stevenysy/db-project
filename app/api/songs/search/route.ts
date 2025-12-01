@@ -38,11 +38,11 @@ export async function GET(request: Request) {
           a.name AS artist_name
         FROM SONG s
         LEFT JOIN ARTIST a ON a.artist_id = s.artist_id
-        WHERE s.name LIKE ?
+        WHERE s.name LIKE ? OR a.name LIKE ?
         ORDER BY s.name ASC
         LIMIT 20;
       `,
-      [likeQuery]
+      [likeQuery, likeQuery]
     );
 
     return NextResponse.json({

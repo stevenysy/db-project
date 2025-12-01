@@ -95,7 +95,8 @@ export function AddSongModal({
           Add a song to {playlist.title}
         </h3>
         <p className="mt-1 text-sm text-zinc-500">
-          Search for tracks by title. Choose a song to add it to your playlist.
+          Search for tracks by title or artist. Choose a song to add it to your
+          playlist.
         </p>
 
         <form onSubmit={handleSearch} className="mt-6 flex gap-3">
@@ -105,7 +106,7 @@ export function AddSongModal({
             onChange={(event) => setQuery(event.target.value)}
             disabled={isSubmitting}
             className="flex-1 rounded-2xl border border-zinc-200 px-4 py-2 text-sm text-zinc-900 shadow-sm focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400 disabled:cursor-not-allowed disabled:bg-zinc-100"
-            placeholder="Search songs (e.g. Memories)"
+            placeholder="Search songs or artists (e.g. Memories or Billie Eilish)"
           />
           <button
             type="submit"

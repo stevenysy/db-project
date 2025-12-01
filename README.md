@@ -104,7 +104,7 @@ Example response:
 
 ### `GET /api/songs/search?q=<query>`
 
-Returns up to 20 songs whose names contain the provided query string.
+Returns up to 20 songs whose names or artist names contain the provided query string.
 
 Example response:
 
