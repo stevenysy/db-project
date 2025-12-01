@@ -4,6 +4,11 @@ export type Song = {
   artist: string;
 };
 
+export type User = {
+  id: number;
+  username: string;
+};
+
 export type Playlist = {
   id: string;
   title: string;

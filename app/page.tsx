@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+
+import { useUser } from "@/app/context/UserContext";
 
 import { AddSongModal } from "./components/AddSongModal";
 import { CreatePlaylistModal } from "./components/CreatePlaylistModal";
@@ -8,12 +10,10 @@ import { PlaylistCard } from "./components/PlaylistCard";
 import { PlaylistModal } from "./components/PlaylistModal";
 import type { ApiSong, Playlist } from "./types";
 
-const user = {
-  id: 1,
-  username: "user_1",
-};
-
 export default function Home() {
+  const { user, login, logout, isLoggingIn } = useUser();
+  const [usernameInput, setUsernameInput] = useState("");
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(
     null
   );
@@ -34,9 +34,19 @@ export default function Home() {
   );
 
   useEffect(() => {
+    if (!user) {
+      setUserPlaylists([]);
+      setUserPlaylistsError(null);
+      setIsLoadingUserPlaylists(false);
+      return;
+    }
+
+    const userId = user.id;
+
     const fetchUserPlaylists = async () => {
+      setIsLoadingUserPlaylists(true);
       try {
-        const response = await fetch(`/api/users/${user.id}/playlists`);
+        const response = await fetch(`/api/users/${userId}/playlists`);
         if (!response.ok) {
           throw new Error("Failed to load your playlists");
         }
@@ -78,10 +88,18 @@ export default function Home() {
     };
 
     fetchUserPlaylists();
-  }, [user.id]);
+  }, [user]);
 
   useEffect(() => {
+    if (!user) {
+      setPopularPlaylists([]);
+      setPopularError(null);
+      setIsLoadingPopular(false);
+      return;
+    }
+
     const fetchPopularPlaylists = async () => {
+      setIsLoadingPopular(true);
       try {
         const response = await fetch("/api/playlists/popular");
         if (!response.ok) {
@@ -125,12 +143,19 @@ export default function Home() {
     };
 
     fetchPopularPlaylists();
-  }, [user.id]);
+  }, [user]);
 
   useEffect(() => {
+    if (!user) {
+      setLikedPlaylistIds(new Set());
+      return;
+    }
+
+    const userId = user.id;
+
     const fetchLikedPlaylists = async () => {
       try {
-        const response = await fetch(`/api/users/${user.id}/liked-playlists`);
+        const response = await fetch(`/api/users/${userId}/liked-playlists`);
         if (!response.ok) {
           throw new Error("Failed to load liked playlists");
         }
@@ -149,13 +174,33 @@ export default function Home() {
     };
 
     fetchLikedPlaylists();
-  }, [user.id]);
+  }, [user]);
+
+  const handleLoginSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoginError(null);
+
+    try {
+      await login(usernameInput);
+      setUsernameInput("");
+    } catch (error) {
+      console.error(error);
+      setLoginError(
+        error instanceof Error ? error.message : "Failed to log in."
+      );
+    }
+  };
 
   const handleCardClick = (playlist: Playlist) => {
     setSelectedPlaylist(playlist);
   };
 
   const handleToggleLike = async (playlist: Playlist) => {
+    if (!user) {
+      setToastMessage("Please log in to like playlists.");
+      return;
+    }
+
     setIsMutating(true);
     const currentlyLiked = likedPlaylistIds.has(playlist.id);
     const nextLiked = !currentlyLiked;
@@ -250,7 +295,24 @@ export default function Home() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isMutating, setIsMutating] = useState(false);
 
+  useEffect(() => {
+    if (user) {
+      return;
+    }
+
+    setSelectedPlaylist(null);
+    setPlaylistForAddSong(null);
+    setIsCreateModalOpen(false);
+    setToastMessage(null);
+    setIsMutating(false);
+  }, [user]);
+
   const handleCreatePlaylist = async (name: string) => {
+    if (!user) {
+      setToastMessage("Please log in to create playlists.");
+      return;
+    }
+
     setIsMutating(true);
     try {
       const response = await fetch("/api/playlists", {
@@ -486,17 +548,72 @@ export default function Home() {
     }
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-zinc-100 text-zinc-900">
+        <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-6 px-6 py-10">
+          <div className="rounded-3xl bg-white p-8 shadow-sm">
+            <h1 className="text-2xl font-semibold text-zinc-950">
+              Welcome back
+            </h1>
+            <p className="mt-2 text-sm text-zinc-500">
+              Enter your username to get started. We will create an account if
+              it does not exist yet.
+            </p>
+            <form
+              className="mt-6 flex flex-col gap-4"
+              onSubmit={handleLoginSubmit}
+            >
+              <label className="flex flex-col gap-2 text-sm font-medium text-zinc-700">
+                Username
+                <input
+                  type="text"
+                  value={usernameInput}
+                  onChange={(event) => setUsernameInput(event.target.value)}
+                  placeholder="e.g. music_fan"
+                  autoFocus
+                  className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-base text-zinc-950 shadow-sm focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                />
+              </label>
+              {loginError && (
+                <p className="text-sm text-red-500" role="alert">
+                  {loginError}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={isLoggingIn}
+                className="rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 focus:ring-offset-white disabled:cursor-not-allowed disabled:bg-emerald-300"
+              >
+                {isLoggingIn ? "Logging in…" : "Log in"}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-100 text-zinc-900">
       <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 py-10">
-        <header className="flex items-center gap-4 border-b border-zinc-200 pb-6">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-300 text-xl font-semibold text-zinc-700">
-            {user.username.charAt(0).toUpperCase()}
+        <header className="flex items-center justify-between gap-4 border-b border-zinc-200 pb-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-300 text-xl font-semibold text-zinc-700">
+              {user.username.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500">Logged in as</p>
+              <h1 className="text-2xl font-semibold">{user.username}</h1>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-zinc-500">Logged in as</p>
-            <h1 className="text-2xl font-semibold">{user.username}</h1>
-          </div>
+          <button
+            type="button"
+            onClick={logout}
+            className="rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-300 focus:ring-offset-2 focus:ring-offset-white"
+          >
+            Log out
+          </button>
         </header>
 
         <div className="grid flex-1 grid-cols-1 gap-6 lg:grid-cols-2">
