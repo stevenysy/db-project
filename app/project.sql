@@ -92,7 +92,7 @@ SET @artist_2_id := LAST_INSERT_ID();
 INSERT INTO ARTIST (name) VALUES ('Taylor Swift');
 SET @artist_3_id := LAST_INSERT_ID();
 
-INSERT INTO ARTIST (name) VALUES ('ImagineDrgns');
+INSERT INTO ARTIST (name) VALUES ('ImagineDragons');
 SET @artist_4_id := LAST_INSERT_ID();
 
 INSERT INTO SONG (name, artist_id, release_date, genre)

@@ -22,7 +22,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (!Number.isInteger(playlistId) || playlistId <= 0) {
     return NextResponse.json(
       { error: "Invalid playlist id provided" },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -32,7 +32,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   } catch {
     return NextResponse.json(
       { error: "Invalid JSON payload" },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -41,14 +41,14 @@ export async function PATCH(request: Request, context: RouteContext) {
   if (!name) {
     return NextResponse.json(
       { error: "Playlist name is required" },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
   if (name.length > 50) {
     return NextResponse.json(
       { error: "Playlist name must be 50 characters or fewer" },
-      { status: 400 },
+      { status: 400 }
     );
   }
 
@@ -60,7 +60,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         SET name = ?
         WHERE playlist_id = ?
       `,
-      [name, playlistId],
+      [name, playlistId]
     );
 
     if (result.affectedRows === 0) {
@@ -70,13 +70,13 @@ export async function PATCH(request: Request, context: RouteContext) {
           FROM PLAYLIST
           WHERE playlist_id = ?
         `,
-        [playlistId],
+        [playlistId]
       );
 
       if (rows.length === 0) {
         return NextResponse.json(
           { error: "Playlist not found" },
-          { status: 404 },
+          { status: 404 }
         );
       }
     }
@@ -88,16 +88,16 @@ export async function PATCH(request: Request, context: RouteContext) {
           name,
         },
       },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     console.error(
       `[PATCH /api/playlists/${playlistId}] Failed to rename playlist`,
-      error,
+      error
     );
     return NextResponse.json(
       { error: "Failed to rename playlist" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

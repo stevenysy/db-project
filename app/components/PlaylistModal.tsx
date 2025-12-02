@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  FormEvent,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 
 import { SongCard } from "./SongCard";
@@ -19,10 +14,7 @@ type PlaylistModalProps = {
   onAddSong: (playlist: Playlist) => void;
   onRemoveSong: (playlist: Playlist, song: Playlist["songs"][number]) => void;
   onRemovePlaylist: (playlist: Playlist) => void;
-  onRenamePlaylist: (
-    playlist: Playlist,
-    title: string,
-  ) => Promise<void>;
+  onRenamePlaylist: (playlist: Playlist, title: string) => Promise<void>;
 };
 
 export function PlaylistModal({
@@ -109,9 +101,7 @@ export function PlaylistModal({
       setTitleError(null);
     } catch (error) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Failed to rename playlist.";
+        error instanceof Error ? error.message : "Failed to rename playlist.";
       setTitleError(message);
       titleInputRef.current?.focus();
       titleInputRef.current?.select();
@@ -216,9 +206,7 @@ export function PlaylistModal({
             ) : null}
 
             {displayedTitleError ? (
-              <p className="mt-2 text-sm text-red-500">
-                {displayedTitleError}
-              </p>
+              <p className="mt-2 text-sm text-red-500">{displayedTitleError}</p>
             ) : null}
 
             <p className="mt-1 text-sm text-zinc-500">
