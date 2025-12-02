@@ -33,6 +33,8 @@ DB_NAME=music_share
 
 ## SQL queries
 
+The source code for creating and populating tables is in [/app/project.sql](/app/project.sql)
+
 Since we created a user interface, our queries are not in an SQL
 file, but instead in our API endpoints. Here is how you can find the query
 for each function we listed in our project report:
