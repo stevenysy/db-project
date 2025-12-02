@@ -646,6 +646,68 @@ export default function Home() {
     }
   };
 
+  const handlePlaylistRenamed = async (
+    playlist: Playlist,
+    newTitle: string
+  ) => {
+    const trimmedTitle = newTitle.trim();
+
+    if (!trimmedTitle || trimmedTitle === playlist.title) {
+      return;
+    }
+
+    setIsMutating(true);
+    try {
+      const response = await fetch(`/api/playlists/${playlist.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: trimmedTitle }),
+      });
+
+      const data: { error?: string } = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        const message = data.error ?? "Failed to rename playlist";
+        throw new Error(message);
+      }
+
+      const updateTitle = (items: Playlist[]) =>
+        items.map((current) =>
+          current.id === playlist.id
+            ? { ...current, title: trimmedTitle }
+            : current
+        );
+
+      setUserPlaylists(updateTitle);
+      setPopularPlaylists(updateTitle);
+      setLikedPlaylists(updateTitle);
+      setSelectedPlaylist((current) =>
+        current && current.id === playlist.id
+          ? { ...current, title: trimmedTitle }
+          : current
+      );
+      setPlaylistForAddSong((current) =>
+        current && current.id === playlist.id
+          ? { ...current, title: trimmedTitle }
+          : current
+      );
+
+      setToastMessage(`Renamed playlist to "${trimmedTitle}".`);
+    } catch (error) {
+      console.error(error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong while renaming the playlist";
+      setToastMessage(message);
+      throw error instanceof Error ? error : new Error(message);
+    } finally {
+      setIsMutating(false);
+    }
+  };
+
   const handlePlaylistRemoved = async (playlist: Playlist) => {
     setIsMutating(true);
     try {
@@ -995,6 +1057,7 @@ export default function Home() {
           onClose={closeModal}
           onAddSong={handleAddSongRequest}
           onRemoveSong={handleSongRemoved}
+          onRenamePlaylist={handlePlaylistRenamed}
           onRemovePlaylist={handlePlaylistRemoved}
         />
       )}
